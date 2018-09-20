@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src = './ajax.js'></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        ul {
+            width: 800px;
+            margin: 0 auto;
+            list-style: none;
+        }
+        li {
+            width: 180px;
+            margin-right: 20px;
+            float: left;
+        }
+        li div {
+            width: 180px;
+            padding: 5px;
+            border: 1px solid black;
+        }
+        li div img {
+            width: 180px;
+        }
+    </style>
+</head>
+<body>
+    <ul>
+        <li>
+            <div>
+                <img src="./0.jpg" alt="">
+            </div>
+        </li>
+        <li>
+            <div>
+                <img src="./0.jpg" alt="">
+            </div>
+        </li>
+        <li>
+            <div>
+                <img src="./0.jpg" alt="">
+            </div>
+        </li>
+        <li>
+            <div>
+                <img src="./0.jpg" alt="">
+            </div>
+        </li>
+    </ul>
+    <script>
+        var oLi = document.getElementsByTagName('li');
+        //获取li中的最短高度的一列
+        function getMinHeightLi () {
+            var current = oLi[0].offsetHeight;
+            var index = 0;
+            for (var i = 0;i < oLi.length;i++) {
+                if (current > oLi[i].offsetHeight) {
+                    current = oLi[i].offsetHeight;
+                    index = i;
+                }
+            }
+            return index;
+        }
+        
+        //再每列最短li下面，添加图片函数
+        function addImg (data) {
+            //将数据转成JSON格式
+            var d = JSON.parse(data);
+            for (var i = 0;i < d.length;i++) {
+                //获取li中的最短高度的一列函数的最短Li的索引
+                var index = getMinHeightLi();
+                var oDiv = document.createElement('div');
+                var oImg = document.createElement('img');
+                //图片加载需要时间，所以对图片进行提前占位
+                oImg.style.height = d[i].height/d[i].width * 180 + 'px';
+                //获取图片的地址
+                oImg.src = d[i].preview;
+                oDiv.appendChild(oImg);
+                oLi[index].appendChild(oDiv);
+            }
+            flag = true;
+        }
+
+        var iPage = 1;
+        //加个锁，避免过多的发送ajax请求
+        var flag = true;
+        function loadImg () {
+            if (flag) {
+                flag = false;
+                Ajax('get','getPics.php',true,addImg,'?cpage=' + iPage++);
+            }
+        }
+        loadImg();
+
+        //滚轮事件
+        window.onscroll = function () {
+            var index = getMinHeightLi();
+            //获得高度最短的那一列li，  图片的临界点
+            var liHeight = oLi[index].offsetHeight;
+            //滚出去的滑轮的高度
+            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            //浏览器可视区的高度
+            var clientHeight = document.documentElement.clientHeight || document.body.clientHeight;
+            //滚出去的滑轮的高度 + 浏览器可视区的高度 > 获得高度最短的那一列li, 再一次触发loadImg函数，发送ajax请求
+            if ((scrollTop + clientHeight) > liHeight) {
+                loadImg();
+            }
+        }
+
+    </script>
+</body>
+</html>
